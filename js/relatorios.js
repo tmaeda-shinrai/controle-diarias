@@ -31,12 +31,21 @@ function setupRelatoriosSearch() {
     let debounceTimer;
 
     if (input) {
+        // Evento de digitação com debounce
         input.addEventListener('input', (e) => {
             clearTimeout(debounceTimer);
-            // Wait user stop typing
             debounceTimer = setTimeout(() => {
                 buscarRelatorio(e.target.value);
             }, 300);
+        });
+
+        // Evento de tecla para forçar a busca imediata ao apertar Enter
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Evita recarregamento caso esteja em um form futuro
+                clearTimeout(debounceTimer);
+                buscarRelatorio(e.target.value);
+            }
         });
     }
 }
