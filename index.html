@@ -49,6 +49,7 @@
             <div class="app-tabs">
                 <button class="tab-btn active" data-target="view-dashboard">Dashboard (Pedidos)</button>
                 <button class="tab-btn" data-target="view-relatorios">Relatórios de Pagamento</button>
+                <button class="tab-btn" data-target="view-cotas">Cotas Mensais</button>
             </div>
         </header>
 
@@ -145,6 +146,67 @@
             </div>
         </div>
 
+        <!-- VIEW: COTAS (Fase 3) -->
+        <div id="view-cotas" class="app-view">
+            <div class="cotas-header">
+                <h2>Cotas por Diretoria</h2>
+                <div class="cotas-filters">
+                    <div class="filter-group">
+                        <label for="cota-mes-select">Mês</label>
+                        <select id="cota-mes-select" class="cota-select">
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="cota-ano-select">Ano</label>
+                        <select id="cota-ano-select" class="cota-select">
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de Diretorias -->
+            <div id="cotas-grid" class="cotas-grid">
+                <!-- Preenchido via JS -->
+                <div class="empty-state">
+                    <div class="loader-spinner"
+                        style="border-top-color: var(--accent-primary); width: 32px; height: 32px; margin-bottom: 16px;">
+                    </div>
+                    <p>Carregando dados das cotas...</p>
+                </div>
+            </div>
+
+            <!-- Detalhamento de Cota (escondido por padrão) -->
+            <section id="cota-detalhes-section" class="cota-detalhes-section">
+                <div class="table-header">
+                    <span class="table-status-icon">🏢</span>
+                    <span class="table-status-name" id="cota-detalhe-title">Detalhamento</span>
+                    <span class="table-count-badge" id="cota-detalhe-count">0 pedidos</span>
+                    <button class="close-table-btn" id="close-cota-detalhes-btn" title="Fechar">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="table-scroll">
+                    <table class="data-table" id="table-cota-detalhes">
+                        <thead>
+                            <tr>
+                                <th class="col-pedido">Pedido</th>
+                                <th class="col-servidor">Beneficiário</th>
+                                <th class="col-servico">Serviço/Motivo</th>
+                                <th class="col-inicio">Data Início</th>
+                                <th class="col-valor">Valor Utilizado</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
     </div>
 
     <!-- Scripts (order matters) -->
@@ -152,6 +214,7 @@
     <script src="js/statusEngine.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/relatorios.js"></script>
+    <script src="js/cotas.js"></script>
     <script src="js/app.js"></script>
 
 </body>
