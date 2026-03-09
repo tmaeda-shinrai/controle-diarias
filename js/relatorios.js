@@ -119,16 +119,16 @@ function renderRelatorioResult(id, pedidos) {
         statusBadge = '<span class="relatorio-badge warning"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Aguardando Pagamento</span>';
     }
 
-    let html = \`
+    let html = `
         <div class="card-relatorio">
             <div class="card-relatorio-header">
                 <div class="card-relatorio-title">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    Relatório Nº \${id}
+                    Relatório Nº ${id}
                 </div>
                 <div class="card-relatorio-badges">
-                    <span class="relatorio-badge">💰 Valor Total Lote: \${formatCurrency(totalValue)}</span>
-                    \${statusBadge}
+                    <span class="relatorio-badge">💰 Valor Total Lote: ${formatCurrency(totalValue)}</span>
+                    ${statusBadge}
                 </div>
             </div>
             
@@ -146,38 +146,44 @@ function renderRelatorioResult(id, pedidos) {
                         </tr>
                     </thead>
                     <tbody>
-    \`;
+    `;
 
-    // \`formatDate\` importado globalmente do dashboard.js
+    // `formatDate` importado globalmente do dashboard.js
     pedidos.forEach(p => {
-        let envDate = formatDate(p['ENVIO']);
-        let pagDate = p['PAGAMENTO'] ? formatDate(p['PAGAMENTO']) : '—';
+        let envDate = typeof formatDate === 'function' ? formatDate(p['ENVIO']) : p['ENVIO'];
+        let pagDate = p['PAGAMENTO'] ? (typeof formatDate === 'function' ? formatDate(p['PAGAMENTO']) : p['PAGAMENTO']) : '—';
 
-        html += \`
+        html += `
             <tr>
-                <td class="col-pedido">\${p['PEDIDO'] || '—'}</td>
-                <td class="col-servidor">\${p['BENEFICIÁRIO'] || '—'}</td>
-                <td class="col-tipo">\${p['TIPO'] || 'Pedido'}</td>
-                <td class="col-dotacao">\${p['DOTAÇÃO'] || '—'}</td>
-                <td class="col-valor">\${p['VALOR'] || '—'}</td>
-                <td class="col-envio">\${envDate}</td>
-                <td class="col-pagamento">\${pagDate}</td>
+                <td class="col-pedido">${p['PEDIDO'] || '—'}</td>
+                <td class="col-servidor">${p['BENEFICIÁRIO'] || '—'}</td>
+                <td class="col-tipo">${p['TIPO'] || 'Pedido'}</td>
+                <td class="col-dotacao">${p['DOTAÇÃO'] || '—'}</td>
+                <td class="col-valor">${p['VALOR'] || '—'}</td>
+                <td class="col-envio">${envDate}</td>
+                <td class="col-pagamento">${pagDate}</td>
             </tr>
-        \`;
+        `;
     });
 
-    html += \`
+    html += `
                     </tbody>
                 </table>
             </div>
         </div>
-    \`;
+    `;
 
     container.innerHTML = html;
 }
 
 // Iniciar Listeners específicos da tela de Relatórios
-document.addEventListener('DOMContentLoaded', () => {
+function initRelatorios() {
     setupRelatoriosTabs();
     setupRelatoriosSearch();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initRelatorios);
+} else {
+    initRelatorios();
+}
