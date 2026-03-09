@@ -35,7 +35,7 @@ const STATUS_META = {
     [STATUS.DEVOLUCAO_PENDENTE]: { icon: '💸', color: '#E67E22', gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', order: 5 },
     [STATUS.REEMBOLSO_EM_PROCESSO]: { icon: '🔄', color: '#9B59B6', gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)', order: 6 },
     [STATUS.ASSINATURA_PENDENTE]: { icon: '✍️', color: '#1ABC9C', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', order: 7 },
-    [STATUS.CONCLUIDO]: { icon: '🏁', color: '#2ECC71', gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)', order: 8 },
+    [STATUS.CONCLUIDO]: { icon: '✅', color: '#2ECC71', gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)', order: 8 },
 };
 
 /**
