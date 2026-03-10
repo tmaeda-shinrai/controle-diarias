@@ -87,7 +87,12 @@ Criar uma tela com as cotas mensais de cada diretoria, com filtros por diretoria
 E ao clicar em uma diretoria, mostrar o detalhamento das cotas utilizadas.
 
 
-## Fase 4
+## Fase 4 
+
+Criar uma tela com o controle de quais pedidos salvos estão aptos para serem enviados para pagamento, ou seja, quais pedidos não estão com pendências. 
+
+
+## Fase 5 (por enquanto não será feita) 
 
 Criar uma tela para acompanhar o lançamento dos relatórios de viagem no Sistema de ponto, os relatório de viagem também são utilizados para justificar a ausência do funcionário durante o período de viagem a serviço, então é importante que o lançamento seja feito o mais rápido possível.
 Se for necessário a criação de novas abas para o controle, pode ser feito.
