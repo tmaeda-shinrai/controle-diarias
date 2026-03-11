@@ -7,13 +7,6 @@ window.__appData = null;
 window.__filteredData = null;
 
 /**
- * Verifica se a API está configurada
- */
-function isApiConfigured() {
-    return API_URL && API_URL !== 'COLE_A_URL_DO_APPS_SCRIPT_AQUI';
-}
-
-/**
  * Dados mockados para demonstração (baseados na documentação real)
  */
 function getMockData() {
@@ -81,12 +74,11 @@ async function initApp() {
     try {
         let data;
 
-        if (isApiConfigured()) {
+        if (isAuthenticated()) {
             data = await fetchAllData();
         } else {
-            // Modo demo — usa dados mockados
+            // Modo demo — usa dados mockados (apenas para dev local)
             console.info('%c🎭 Modo Demonstração', 'color: #8ab4f8; font-size: 14px; font-weight: bold');
-            console.info('API não configurada. Usando dados de exemplo. Configure a variável API_URL em js/api.js');
             data = getMockData();
         }
 
@@ -135,7 +127,7 @@ function setupEventListeners() {
             refreshBtn.classList.add('spinning');
             try {
                 let data;
-                if (isApiConfigured()) {
+                if (isAuthenticated()) {
                     data = await fetchAllData(true);
                 } else {
                     data = getMockData();
@@ -179,10 +171,10 @@ function updateLastSync() {
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, '0');
         const mm = String(now.getMinutes()).padStart(2, '0');
-        const label = isApiConfigured() ? 'Atualizado' : '🎭 Demo';
+        const label = isAuthenticated() ? 'Atualizado' : '🎭 Demo';
         el.textContent = `${label} às ${hh}:${mm}`;
     }
 }
 
-// Inicializa quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', initApp);
+// NOTA: initApp() é chamada por handleCredentialResponse() em api.js
+// após login com Google. Não usar DOMContentLoaded.
