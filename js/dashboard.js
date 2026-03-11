@@ -152,7 +152,11 @@ function renderExpandedTable(pedidos, status, rawData) {
   const relPagamento = rawData.relPagamento || [];
 
   pedidos.forEach(pedido => {
-    const relPag = relPagamento.find(r => r['PEDIDO'] === pedido['PEDIDO'] && String(r['TIPO']).toLowerCase() === 'pedido');
+    const relPag = relPagamento.find(r => {
+      const pId = extrairSeqAno(r['PEDIDO']);
+      const curId = extrairSeqAno(pedido['PEDIDO']);
+      return pId && curId && pId.seq === curId.seq && pId.ano === curId.ano && String(r['TIPO']).toLowerCase() === 'pedido';
+    });
     const relatorioEntregue = pedido['RELATÓRIO'] === true || pedido['RELATÓRIO'] === 'TRUE';
 
     // Badge exibido na coluna Situação

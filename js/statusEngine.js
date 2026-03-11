@@ -52,7 +52,12 @@ function calcularStatus(pedido, relPagamentos, assinaturas) {
     const temReembolso = pedido['Reembolso'] === true || pedido['Reembolso'] === 'TRUE';
 
     // Busca registros deste pedido na aba REL_PAGAMENTO
-    const regsPagamento = relPagamentos.filter(r => r['PEDIDO'] === numeroPedido);
+    // Usa comparação agnóstica de formato (DETRAN/xxxxx/aaaa ↔ xxxxx/DETRAN/aaaa)
+    const pedidoId = extrairSeqAno(numeroPedido);
+    const regsPagamento = relPagamentos.filter(r => {
+        const relId = extrairSeqAno(r['PEDIDO']);
+        return pedidoId && relId && pedidoId.seq === relId.seq && pedidoId.ano === relId.ano;
+    });
     const regPedido = regsPagamento.find(r => String(r['TIPO']).toLowerCase() === 'pedido');
     const regRelatorio = regsPagamento.find(r => String(r['TIPO']).toLowerCase() === 'relatório' || String(r['TIPO']).toLowerCase() === 'relatorio');
 
@@ -85,7 +90,7 @@ function calcularStatus(pedido, relPagamentos, assinaturas) {
     }
 
     // 2. ASSINATURA PENDENTE: Está na aba ASSINATURAS_PENDENTES
-    if (naAssinaturas && pagamentoEfetuado) {
+    if (naAssinaturas) {
         return STATUS.ASSINATURA_PENDENTE;
     }
 
@@ -128,27 +133,48 @@ function calcularStatus(pedido, relPagamentos, assinaturas) {
 }
 
 /**
- * Verifica se um número de pedido (DETRAN/00001/2026) corresponde a
- * um número de relatório na aba assinaturas (00001/DETRAN/2026 ou variações)
+ * Extrai o número sequencial e o ano de um identificador de pedido/relatório,
+ * independente do formato (DETRAN/00001/2026 ou 00001/DETRAN/2026).
+ * @param {string} id - Identificador no formato "XXX/YYY/ZZZ"
+ * @returns {{ seq: number, ano: number } | null}
  */
-function pedidoMatchAssinatura(numeroPedido, numRelatorio) {
-    if (!numeroPedido || !numRelatorio) return false;
+function extrairSeqAno(id) {
+    if (!id) return null;
+    const partes = String(id).trim().split('/');
+    if (partes.length < 3) return null;
 
-    // Extrai apenas os números sequenciais de ambos para comparação
-    const partesPedido = String(numeroPedido).split('/');
-    const partesRel = String(numRelatorio).split('/');
+    // Identifica qual parte é o sequencial numérico e qual é o ano
+    // Regra: o ano é um número de 4 dígitos >= 2020; o sequencial é o outro número
+    let seq = NaN, ano = NaN;
 
-    if (partesPedido.length >= 2 && partesRel.length >= 1) {
-        // DETRAN/00001/2026 → 00001
-        const seqPedido = partesPedido[1] || partesPedido[0];
-        // 00001/DETRAN/2026 → 00001 ou 00255/DETRAN/2026 → 00255
-        const seqRel = partesRel[0];
+    for (const parte of partes) {
+        const num = parseInt(parte, 10);
+        if (isNaN(num)) continue; // pula textos como "DETRAN"
 
-        // Compara os sequenciais (remove zeros à esquerda)
-        return parseInt(seqPedido, 10) === parseInt(seqRel, 10);
+        if (num >= 2020 && num <= 2099 && String(parte).replace(/^0+/, '').length === 4) {
+            ano = num;
+        } else {
+            seq = num;
+        }
     }
 
-    return false;
+    if (isNaN(seq) || isNaN(ano)) return null;
+    return { seq, ano };
+}
+
+/**
+ * Verifica se um número de pedido corresponde a um número de relatório
+ * na aba assinaturas. Funciona independente do formato:
+ *   DETRAN/00001/2026  ↔  00001/DETRAN/2026
+ *   00378/DETRAN/2025  ↔  00378/DETRAN/2025
+ */
+function pedidoMatchAssinatura(numeroPedido, numRelatorio) {
+    const pedido = extrairSeqAno(numeroPedido);
+    const relatorio = extrairSeqAno(numRelatorio);
+
+    if (!pedido || !relatorio) return false;
+
+    return pedido.seq === relatorio.seq && pedido.ano === relatorio.ano;
 }
 
 /**
@@ -214,7 +240,11 @@ function diasUteisDesde(date) {
  * @returns {Object} { statusCounts, statusPedidos, allPedidos }
  */
 function processarTodosStatus(data) {
-    const pedidos = data.pedidos || [];
+    // Considera apenas pedidos que tenham a coluna MATRICULA preenchida
+    const pedidos = (data.pedidos || []).filter(p => {
+        const mat = p['MATRÍCULA'] || p['MATRICULA'];
+        return mat !== null && mat !== undefined && String(mat).trim() !== '';
+    });
     const relPagamento = data.relPagamento || [];
     const assinaturas = data.assinaturasPendentes || [];
 
