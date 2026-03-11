@@ -276,6 +276,27 @@ function doPost(e) {
 }
 
 /**
+ * ⭐ EXECUTE ESTA FUNÇÃO PRIMEIRO para autorizar todas as permissões.
+ * No editor, selecione "autorizarPermissoes" no dropdown e clique em ▶ Executar.
+ * Aceite todas as permissões no diálogo que aparecer.
+ */
+function autorizarPermissoes() {
+  // Dispara autorização do UrlFetchApp (necessário para verificar tokens)
+  var response = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?id_token=test', { muteHttpExceptions: true });
+  Logger.log('UrlFetchApp: OK (status ' + response.getResponseCode() + ')');
+
+  // Dispara autorização do DriveApp (necessário para verificar acesso à planilha)
+  var file = DriveApp.getFileById(SPREADSHEET_ID);
+  Logger.log('DriveApp: OK (' + file.getName() + ')');
+
+  // Dispara autorização do SpreadsheetApp
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  Logger.log('SpreadsheetApp: OK (' + ss.getName() + ')');
+
+  Logger.log('✅ Todas as permissões autorizadas com sucesso!');
+}
+
+/**
  * Função para testes — execute no editor do Apps Script
  */
 function testGetAllData() {
