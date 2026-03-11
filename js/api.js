@@ -6,7 +6,7 @@
  * usuário tem acesso à planilha antes de retornar os dados.
  */
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbyOSiPzt8Zo-mbMBDKphnw3bC8Fhmzy6ernn-DK3Hw-CAiO9Hxq9s1i0TQ2xBRM_9xN/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycby4FMS6Wq2TbpdMyP6sGDu1cCt9bzH6Aenq2H2NjHTyVH2x3y6rk-2Ccykcd3QO5FDl/exec';
 
 /**
  * Client ID do Google OAuth 2.0 (público — não é um segredo).
