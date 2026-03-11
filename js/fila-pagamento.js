@@ -3,12 +3,14 @@
  *
  * Regras de bloqueio (cumulativas entre todos os tipos de pendência):
  * - Devolução pendente:  1 ocorrência já bloqueia
- * - Outros status bloqueadores (Relatório pendente, Reembolso em processo,
+ * - Outros status bloqueadores (Aguardando pagamento, Relatório em revisão, Relatório pendente, Reembolso em processo,
  *   Assinatura pendente): 2+ ocorrências no total (cumulativo) bloqueiam
  */
 
 // Status que contam como pendências para bloqueio
 const STATUS_BLOQUEADORES = [
+    'Aguardando pagamento',
+    'Relatório em revisão',
     'Relatório pendente',
     'Devolução pendente',
     'Reembolso em processo',
@@ -59,7 +61,7 @@ function initFilaPagamento() {
  * @returns {{ bloqueado: boolean, totalPendencias: number, motivos: Array }}
  */
 function analisarBloqueio(matricula, allPedidos) {
-    const pedidosBenef = allPedidos.filter(p => String(p['MATRÍCULA']) === String(matricula));
+    const pedidosBenef = allPedidos.filter(p => String(p['MATRÍCULA'] || p['MATRICULA']) === String(matricula));
 
     const motivos = [];
     let totalPendencias = 0;
@@ -94,7 +96,7 @@ function renderFilaPagamento() {
     // Analisa bloqueios por matrícula (cache no Map)
     filaState.analise.clear();
     filaState.pedidosSalvos.forEach(p => {
-        const mat = String(p['MATRÍCULA']);
+        const mat = String(p['MATRÍCULA'] || p['MATRICULA']);
         if (!filaState.analise.has(mat)) {
             filaState.analise.set(mat, analisarBloqueio(mat, allPedidos));
         }
@@ -103,7 +105,7 @@ function renderFilaPagamento() {
     // Atualiza contadores do resumo
     let countApto = 0, countBloqueado = 0;
     filaState.pedidosSalvos.forEach(p => {
-        const mat = String(p['MATRÍCULA']);
+        const mat = String(p['MATRÍCULA'] || p['MATRICULA']);
         if (filaState.analise.get(mat)?.bloqueado) {
             countBloqueado++;
         } else {
@@ -128,9 +130,9 @@ function aplicarFiltroFila() {
     let pedidos = filaState.pedidosSalvos;
 
     if (filaState.filtro === 'apto') {
-        pedidos = pedidos.filter(p => !filaState.analise.get(String(p['MATRÍCULA']))?.bloqueado);
+        pedidos = pedidos.filter(p => !filaState.analise.get(String(p['MATRÍCULA'] || p['MATRICULA']))?.bloqueado);
     } else if (filaState.filtro === 'bloqueado') {
-        pedidos = pedidos.filter(p => filaState.analise.get(String(p['MATRÍCULA']))?.bloqueado);
+        pedidos = pedidos.filter(p => filaState.analise.get(String(p['MATRÍCULA'] || p['MATRICULA']))?.bloqueado);
     }
 
     if (pedidos.length === 0) {
@@ -141,7 +143,7 @@ function aplicarFiltroFila() {
     tbody.innerHTML = '';
 
     pedidos.forEach(p => {
-        const mat = String(p['MATRÍCULA']);
+        const mat = String(p['MATRÍCULA'] || p['MATRICULA']);
         const analise = filaState.analise.get(mat);
         const bloqueado = analise?.bloqueado;
 
