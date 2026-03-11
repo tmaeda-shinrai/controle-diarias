@@ -203,26 +203,25 @@ function applyFilter(searchTerm) {
       return nome.includes(_currentFilter) || matricula.includes(_currentFilter);
     });
 
-    // Identifica o servidor do primeiro pedido encontrado
-    let matriculaFiltrada = null;
-    if (pedidosCandidatos.length > 0) {
-      matriculaFiltrada = String(pedidosCandidatos[0]['MATRÍCULA'] || pedidosCandidatos[0]['MATRICULA'] || '');
-      const servidor = data.servidores.find(s =>
-        String(s['MATRÍCULA'] || s['MATRICULA']) === matriculaFiltrada
-      );
-      if (servidor) {
-        _filteredServidor = servidor;
-        showServidorInfo(servidor);
-      }
+    const matriculasCandidatas = [...new Set(pedidosCandidatos.map(p => String(p['MATRÍCULA'] || p['MATRICULA'] || '')))];
+
+    // Identifica os servidores de todos os pedidos encontrados
+    const servidoresEncontrados = data.servidores.filter(s => {
+      const mat = String(s['MATRÍCULA'] || s['MATRICULA'] || '');
+      return matriculasCandidatas.includes(mat);
+    });
+
+    if (servidoresEncontrados.length > 0) {
+      _filteredServidor = servidoresEncontrados[0]; // Mantendo para compatibilidade caso seja usado em outro lugar
+      showServidoresInfo(servidoresEncontrados);
     } else {
       hideServidorInfo();
     }
 
-    // 2ª passagem: restringe para apenas a matrícula do servidor identificado
-    // (evita que homônimos parciais apareçam na tabela expandida)
-    const pedidosFiltrados = matriculaFiltrada
-      ? pedidosCandidatos.filter(p =>
-        String(p['MATRÍCULA'] || p['MATRICULA'] || '') === matriculaFiltrada)
+    // 2ª passagem: os pedidos exibidos serão TODOS os pedidos das matrículas candidatas (para evitar que pedidos com erros de digitação de nome fiquem de fora)
+    const pedidosFiltrados = matriculasCandidatas.length > 0
+      ? data.pedidos.filter(p => 
+        matriculasCandidatas.includes(String(p['MATRÍCULA'] || p['MATRICULA'] || '')))
       : pedidosCandidatos;
 
     // Filtra REL_PAGAMENTO pelos pedidos finais
@@ -241,46 +240,59 @@ function applyFilter(searchTerm) {
   renderDashboard(processed, filteredData);
 }
 
+window.selectServidor = function(nome) {
+  const searchInput = document.getElementById('search-input');
+  if (searchInput && nome) {
+    searchInput.value = nome;
+    applyFilter(nome);
+  }
+};
+
 /**
- * Exibe informações do servidor filtrado
+ * Exibe informações dos servidores filtrados
  */
-function showServidorInfo(servidor) {
+function showServidoresInfo(servidores) {
   const panel = document.getElementById('servidor-info');
   if (!panel) return;
 
-  panel.innerHTML = `
-    <div class="servidor-header">
-      <div class="servidor-avatar">${(servidor['SERVIDOR'] || 'S')[0]}</div>
-      <div class="servidor-details">
-        <h3>${servidor['SERVIDOR'] || '—'}</h3>
-        <span class="servidor-matricula">Matrícula: ${servidor['MATRÍCULA'] || servidor['MATRICULA'] || '—'}</span>
+  panel.innerHTML = servidores.map((servidor, index) => {
+    const isLast = index === servidores.length - 1;
+    return `
+      <div class="servidor-card-item" style="${!isLast ? 'margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color);' : ''}">
+        <div class="servidor-header">
+          <div class="servidor-avatar">${(servidor['SERVIDOR'] || 'S')[0]}</div>
+          <div class="servidor-details">
+            <h3 class="servidor-name-clickable" onclick="selectServidor('${servidor['SERVIDOR'] || ''}')" title="Clique para preencher a busca">${servidor['SERVIDOR'] || '—'}</h3>
+            <span class="servidor-matricula">Matrícula: ${servidor['MATRÍCULA'] || servidor['MATRICULA'] || '—'}</span>
+          </div>
+        </div>
+        <div class="servidor-data">
+          <div class="servidor-field">
+            <span class="field-label">CPF</span>
+            <span class="field-value">${servidor['CPF'] || '—'}</span>
+          </div>
+          <div class="servidor-field">
+            <span class="field-label">Banco</span>
+            <span class="field-value">${servidor['BANCO'] || '—'}</span>
+          </div>
+          <div class="servidor-field">
+            <span class="field-label">Agência</span>
+            <span class="field-value">${servidor['AgenciaCod'] || '—'}</span>
+          </div>
+          <div class="servidor-field">
+            <span class="field-label">Conta</span>
+            <span class="field-value">${servidor['ContaNro'] || '—'}</span>
+          </div>
+        </div>
+        ${servidor['Obs'] ? `
+          <div class="servidor-obs">
+            <span class="obs-label">📌 Observações</span>
+            <p>${servidor['Obs']}</p>
+          </div>
+        ` : ''}
       </div>
-    </div>
-    <div class="servidor-data">
-      <div class="servidor-field">
-        <span class="field-label">CPF</span>
-        <span class="field-value">${servidor['CPF'] || '—'}</span>
-      </div>
-      <div class="servidor-field">
-        <span class="field-label">Banco</span>
-        <span class="field-value">${servidor['BANCO'] || '—'}</span>
-      </div>
-      <div class="servidor-field">
-        <span class="field-label">Agência</span>
-        <span class="field-value">${servidor['AgenciaCod'] || '—'}</span>
-      </div>
-      <div class="servidor-field">
-        <span class="field-label">Conta</span>
-        <span class="field-value">${servidor['ContaNro'] || '—'}</span>
-      </div>
-    </div>
-    ${servidor['Obs'] ? `
-      <div class="servidor-obs">
-        <span class="obs-label">📌 Observações</span>
-        <p>${servidor['Obs']}</p>
-      </div>
-    ` : ''}
-  `;
+    `;
+  }).join('');
 
   panel.classList.add('visible');
 }
