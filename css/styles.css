@@ -17,8 +17,8 @@
   --text-secondary: #9a9ab5;
   --text-muted: #6b6b85;
 
-  --accent-primary: #667eea;
-  --accent-secondary: #764ba2;
+  --accent-primary: #0b03fc;
+  --accent-secondary: #0b03fc;
   --accent-success: #2ecc71;
   --accent-warning: #f39c12;
   --accent-danger: #e74c3c;
@@ -38,6 +38,66 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Light Mode Tokens --- */
+html[data-theme="light"] {
+  --bg-primary: #f0f2f8;
+  --bg-secondary: #e4e8f4;
+  --bg-tertiary: #eaecf6;
+  --bg-card: rgba(0, 0, 0, 0.04);
+  --bg-card-hover: rgba(0, 0, 0, 0.08);
+  --bg-glass: rgba(0, 0, 0, 0.05);
+
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a4a6a;
+  --text-muted: #8282a0;
+
+  --border-color: rgba(0, 0, 0, 0.09);
+  --border-hover: rgba(0, 0, 0, 0.18);
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-elevated: 0 8px 40px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 60px rgba(102, 126, 234, 0.10);
+}
+
+html[data-theme="light"] body::before {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(102, 126, 234, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(118, 75, 162, 0.06) 0%, transparent 50%);
+}
+
+html[data-theme="light"] #loading-overlay {
+  background: rgba(240, 242, 248, 0.88);
+}
+
+html[data-theme="light"] .login-card {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(102, 126, 234, 0.18);
+  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.12);
+}
+
+html[data-theme="light"] #login-screen {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(102, 126, 234, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(118, 75, 162, 0.10) 0%, transparent 50%),
+    var(--bg-primary);
+}
+
+html[data-theme="light"] .card-relatorio-header {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="light"] .app-tabs {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+html[data-theme="light"] .data-table thead th {
+  background: var(--bg-secondary);
+}
+
+html[data-theme="light"] .data-table tbody tr:hover td {
+  background: rgba(102, 126, 234, 0.06);
 }
 
 /* --- Reset & Base --- */
@@ -61,6 +121,7 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background var(--transition-slow), color var(--transition-slow);
 }
 
 /* Background texture */
@@ -203,6 +264,26 @@ body::before {
   margin-bottom: 4px;
 }
 
+#theme-toggle-btn {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-normal);
+}
+
+#theme-toggle-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+  color: var(--accent-primary);
+}
+
 #refresh-btn {
   background: var(--bg-glass);
   border: 1px solid var(--border-color);
@@ -293,7 +374,8 @@ body::before {
 
 #search-input,
 #search-relatorio-input,
-#search-ponto-input {
+#search-ponto-input,
+#search-historico-input {
   width: 100%;
   padding: 12px 16px 12px 44px;
   background: var(--bg-glass);
@@ -308,20 +390,23 @@ body::before {
 
 #search-input::placeholder,
 #search-relatorio-input::placeholder,
-#search-ponto-input::placeholder {
+#search-ponto-input::placeholder,
+#search-historico-input::placeholder {
   color: var(--text-muted);
 }
 
 #search-input:focus,
 #search-relatorio-input:focus,
-#search-ponto-input:focus {
+#search-ponto-input:focus,
+#search-historico-input:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
   background: var(--bg-card-hover);
 }
 
 #clear-filter-btn,
-#clear-ponto-filter-btn {
+#clear-ponto-filter-btn,
+#clear-historico-filter-btn {
   background: var(--bg-glass);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
@@ -335,7 +420,8 @@ body::before {
 }
 
 #clear-filter-btn:hover,
-#clear-ponto-filter-btn:hover {
+#clear-ponto-filter-btn:hover,
+#clear-historico-filter-btn:hover {
   background: var(--bg-card-hover);
   border-color: var(--border-hover);
   color: var(--text-primary);

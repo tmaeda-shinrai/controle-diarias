@@ -3,13 +3,14 @@
  *
  * Regras de bloqueio (cumulativas entre todos os tipos de pendência):
  * - Devolução pendente:  1 ocorrência já bloqueia
- * - Outros status bloqueadores (Aguardando pagamento, Relatório em revisão, Relatório pendente, Reembolso em processo,
+ * - Outros status bloqueadores (Aguardando pagamento, Pagamento efetuado, Relatório em revisão, Relatório pendente, Reembolso em processo,
  *   Assinatura pendente): 2+ ocorrências no total (cumulativo) bloqueiam
  */
 
 // Status que contam como pendências para bloqueio
 const STATUS_BLOQUEADORES = [
     'Aguardando pagamento',
+    'Pagamento efetuado',
     'Relatório em revisão',
     'Relatório pendente',
     'Devolução pendente',

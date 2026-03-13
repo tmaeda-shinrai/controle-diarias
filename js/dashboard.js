@@ -77,6 +77,7 @@ function renderTotals(processedData) {
 
   if (pendentesEl) {
     const pendentes = [
+      STATUS.PAGAMENTO_EFETUADO,
       STATUS.RELATORIO_PENDENTE,
       STATUS.DEVOLUCAO_PENDENTE,
       STATUS.REEMBOLSO_EM_PROCESSO,

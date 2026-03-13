@@ -35,13 +35,16 @@ Devido os pagamentos são feito antes do deslocamento ocorrer frequentemente o b
 Frequentemente ocorre de o beneficiário não confirmar no MS Digital, o relatório é entregue mas o beneficiário não realize a confirmação, nesse caso a solicitação contará como pendente na prestação de contas, tenho 2 ou mais, o beneficiário fica impedido de receber novos pagamentos, só poderá receber após a regularização das pendências.
 
 
+### O beneficiário ainda não concluiu a prestação de contas
+Após o pagamento ser efetuado, a solicitação já conta como uma pendência na prestação de contas até que seja totalmente concluída (relatório entregue e assinado). Se houver 2 ou mais solicitações pendentes (seja em status de Pagamento efetuado, Assinatura pendente, Relatório pendente, etc), o beneficiário fica impedido de receber novos pagamentos, só poderá receber após a regularização das pendências.
+
 # Status que serão utilizados no controle
 
 | Status                 | Obs                                                                 |
 |------------------------|----------------------------------------------------------------------|
 | Pedido salvo           | Após o recebimento do pedido, ele é salvo no sistema.               |
 | Aguardando pagamento   | Se não houver pendências, a solicitação é enviada para pagamento.   |
-| Pagamento efetuado     | Quando o pagamento é efetuado no SISDEF. |
+| Pagamento efetuado     | Quando o pagamento é efetuado no SISDEF. (Conta como pendência para novos pedidos) |
 | Relatório em revisão   | Quando o pedido já foi enviado para pagamento (status "Aguardando pagamento") e o beneficiário já entregou o relatório, porém ainda não é possível tramitar até o pagamento ser efetivado. |
 | Relatório pendente     | Após 5 dias do final do deslocamento, o relatório de viagem não foi entregue. |
 | Devolução pendente     | Ao entregar o relatório foram gerados valores a devolver, mas ainda não foram devolvidos. |
