@@ -54,7 +54,7 @@ function renderHistoricoPagamentos(searchTerm = '') {
 
     const data = window.__appData;
     if (!data || !data.relPagamento) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 32px;">Nenhum dado carregado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 32px;">Nenhum dado carregado.</td></tr>`;
         return;
     }
 
@@ -102,7 +102,7 @@ function renderHistoricoPagamentos(searchTerm = '') {
 
     if (registrosFiltrados.length === 0) {
         tbody.innerHTML = `<tr>
-            <td colspan="7" style="text-align:center; padding: 32px; color: var(--text-muted);">
+            <td colspan="8" style="text-align:center; padding: 32px; color: var(--text-muted);">
                 Nenhum registro de pagamento encontrado.
             </td>
         </tr>`;
@@ -137,6 +137,7 @@ function renderHistoricoPagamentos(searchTerm = '') {
         const numPedido = r['PEDIDO'] || '—';
         const beneficiario = r['BENEFICIÁRIO'] || r['BENEFICIARIO'] || '—';
         const tipo = r['TIPO'] || '—';
+        const valor = r['VALOR'] || '—';
         const pagamentoRaw = r['PAGAMENTO'];
 
         // Cross-reference com a aba PEDIDOS para obter trecho e datas
@@ -183,6 +184,7 @@ function renderHistoricoPagamentos(searchTerm = '') {
                 <td class="col-inicio">${inicioDate}</td>
                 <td class="col-final">${finalDate}</td>
                 <td style="min-width: 130px; text-align: center;">${tipoBadge}</td>
+                <td class="col-valor" style="min-width: 110px; text-align: right; font-weight: 500;">${valor}</td>
                 <td class="col-situacao" style="text-align: center;">${dataBadge}</td>
             </tr>
         `;
