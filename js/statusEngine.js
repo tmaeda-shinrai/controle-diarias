@@ -39,6 +39,26 @@ const STATUS_META = {
 };
 
 /**
+ * Extrai o nome do servidor de forma resiliente, considerando possíveis 
+ * variações de cabeçalho ou dados deslocados nas colunas.
+ * @param {Object} obj
+ * @returns {string}
+ */
+function getServidorName(obj) {
+    if (!obj) return '—';
+    let nome = obj['SERVIDOR'] || obj['NOME'] || obj['BENEFICIÁRIO'];
+    if (typeof nome === 'string' && nome.trim().length > 0) {
+        return nome.trim();
+    }
+    // Fallback: em caso de planilha deslocada, o nome às vezes cai na coluna matrícula
+    const mat = obj['MATRÍCULA'] || obj['MATRICULA'];
+    if (typeof mat === 'string' && /[a-zA-Z]{3,}/.test(mat)) {
+        return mat.trim();
+    }
+    return '—';
+}
+
+/**
  * Calcula o status de um pedido com base nos dados cruzados
  * @param {Object} pedido - Registro da aba PEDIDOS
  * @param {Array}  relPagamentos - Todos os registros da aba REL_PAGAMENTO
@@ -240,10 +260,9 @@ function diasUteisDesde(date) {
  * @returns {Object} { statusCounts, statusPedidos, allPedidos }
  */
 function processarTodosStatus(data) {
-    // Considera apenas pedidos que tenham a coluna MATRICULA preenchida
+    // Considera apenas pedidos que tenham PEDIDO definido (evita linhas totalmente vazias)
     const pedidos = (data.pedidos || []).filter(p => {
-        const mat = p['MATRÍCULA'] || p['MATRICULA'];
-        return mat !== null && mat !== undefined && String(mat).trim() !== '';
+        return p['PEDIDO'] !== null && p['PEDIDO'] !== undefined && String(p['PEDIDO']).trim() !== '';
     });
     const relPagamento = data.relPagamento || [];
     const assinaturas = data.assinaturasPendentes || [];

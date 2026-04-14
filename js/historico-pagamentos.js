@@ -66,25 +66,37 @@ function renderHistoricoPagamentos(searchTerm = '') {
 
     if (term) {
         registrosFiltrados = registrosFiltrados.filter(r => {
-            const nome = String(r['BENEFICIÁRIO'] || r['BENEFICIARIO'] || '').toLowerCase();
+            const nome = getServidorName(r).toLowerCase();
             return nome.includes(term);
         });
 
         // Buscar dados dos servidores correspondentes cruzando com a tabela de pedidos
         const nomesBenef = [...new Set(
-            registrosFiltrados.map(r => String(r['BENEFICIÁRIO'] || r['BENEFICIARIO'] || '').toLowerCase())
-        )];
+            registrosFiltrados.map(r => getServidorName(r).toLowerCase())
+        )].filter(n => n !== '' && n !== '—');
 
         const matriculasEncontradas = [...new Set(
             (data.pedidos || [])
-                .filter(p => nomesBenef.includes(String(p['SERVIDOR'] || '').toLowerCase()))
+                .filter(p => nomesBenef.includes(getServidorName(p).toLowerCase()))
                 .map(p => String(p['MATRÍCULA'] || p['MATRICULA'] || ''))
-        )];
+        )].filter(m => m.trim() !== '');
 
         servidoresEncontrados = (data.servidores || []).filter(s => {
             const mat = String(s['MATRÍCULA'] || s['MATRICULA'] || '');
-            return matriculasEncontradas.includes(mat);
+            const nome = getServidorName(s).toLowerCase();
+            return (mat && matriculasEncontradas.includes(mat)) || (nome && nomesBenef.includes(nome));
         });
+
+        if (servidoresEncontrados.length === 0 && registrosFiltrados.length > 0) {
+            const vistos = new Set();
+            registrosFiltrados.forEach(r => {
+                const nome = getServidorName(r);
+                if (!vistos.has(nome)) {
+                    vistos.add(nome);
+                    servidoresEncontrados.push({ 'SERVIDOR': nome });
+                }
+            });
+        }
     }
 
     // Exibir ou ocultar painel de informações do servidor
@@ -135,7 +147,7 @@ function renderHistoricoPagamentos(searchTerm = '') {
 
     registrosFiltrados.forEach(r => {
         const numPedido = r['PEDIDO'] || '—';
-        const beneficiario = r['BENEFICIÁRIO'] || r['BENEFICIARIO'] || '—';
+        const beneficiario = getServidorName(r);
         const tipo = r['TIPO'] || '—';
         const valor = r['VALOR'] || '—';
         const pagamentoRaw = r['PAGAMENTO'];
@@ -199,65 +211,24 @@ function renderHistoricoPagamentos(searchTerm = '') {
 function showServidoresHistoricoInfo(servidores, panel) {
     if (!panel) return;
 
+    panel.classList.add('servidor-info-panel'); // Garante classe base
+    
     panel.innerHTML = servidores.map((servidor, index) => {
         const isLast = index === servidores.length - 1;
+        const nomeSrv = getServidorName(servidor);
+        const inicial = nomeSrv !== '—' ? nomeSrv[0].toUpperCase() : 'S';
+
         return `
-            <div class="servidor-card-item" style="${!isLast ? 'margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color);' : ''}">
-                <div class="servidor-header">
-                    <div class="servidor-avatar">${(servidor['SERVIDOR'] || 'S')[0]}</div>
-                    <div class="servidor-details">
-                        <h3 class="servidor-name-clickable" onclick="selectBeneficiarioHistorico('${servidor['SERVIDOR'] || ''}')" title="Clique para preencher a busca">${servidor['SERVIDOR'] || '—'}</h3>
-                        <span class="servidor-matricula">Matrícula: ${servidor['MATRÍCULA'] || servidor['MATRICULA'] || '—'}</span>
-                    </div>
+            <div class="servidor-card-item" style="padding: 12px 16px; ${!isLast ? 'border-bottom: 1px solid var(--border-color);' : ''} display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s;" onclick="selectBeneficiarioHistorico('${nomeSrv.replace(/'/g, "\\'")}')" onmouseover="this.style.background='var(--bg-card-hover)'" onmouseout="this.style.background='transparent'">
+                <div class="servidor-avatar" style="width: 32px; height: 32px; font-size: 0.9rem;">${inicial}</div>
+                <div class="servidor-details">
+                    <h3 class="servidor-name-clickable" style="font-size: 0.95rem; margin: 0; color: var(--text-primary); transition: none;" title="Preencher busca">${nomeSrv}</h3>
                 </div>
-                <div class="servidor-data">
-                    <div class="servidor-field">
-                        <span class="field-label">CPF</span>
-                        <span class="field-value">${servidor['CPF'] || '—'}</span>
-                    </div>
-                    <div class="servidor-field">
-                        <span class="field-label">Banco</span>
-                        <span class="field-value">${servidor['BANCO'] || '—'}</span>
-                    </div>
-                    <div class="servidor-field">
-                        <span class="field-label">Agência</span>
-                        <span class="field-value">${servidor['AgenciaCod'] || '—'}</span>
-                    </div>
-                    <div class="servidor-field">
-                        <span class="field-label">Conta</span>
-                        <span class="field-value">${servidor['ContaNro'] || '—'}</span>
-                    </div>
-                </div>
-                ${servidor['Obs'] ? `
-                    <div class="servidor-obs">
-                        <span class="obs-label">📌 Observações</span>
-                        <p>${servidor['Obs']}</p>
-                    </div>
-                ` : ''}
             </div>
         `;
     }).join('');
 
     panel.classList.add('visible');
-    if (!panel.classList.contains('servidor-info-base-classes')) {
-        panel.classList.add('servidor-info-base-classes');
-        panel.style.background = 'var(--bg-card)';
-        panel.style.border = '1px solid var(--border-color)';
-        panel.style.borderRadius = 'var(--radius-lg)';
-        panel.style.padding = '0';
-        panel.style.marginBottom = '24px';
-        panel.style.maxHeight = '0';
-        panel.style.opacity = '0';
-        panel.style.overflow = 'hidden';
-        panel.style.transition = 'all var(--transition-slow)';
-    }
-
-    setTimeout(() => {
-        panel.style.padding = '20px';
-        panel.style.maxHeight = '2000px';
-        panel.style.opacity = '1';
-        panel.style.overflowY = 'auto';
-    }, 10);
 }
 
 /**

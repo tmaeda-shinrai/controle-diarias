@@ -65,21 +65,43 @@ function renderLancamentoPonto(searchTerm = '') {
     if (term) {
         // Encontrar os pedidos que contém esse termo
         const pedidosCandidatos = pedidosFiltrados.filter(p => {
-            const nome = String(p['SERVIDOR'] || '').toLowerCase();
+            const nome = getServidorName(p).toLowerCase();
             const mat = String(p['MATRÍCULA'] || p['MATRICULA'] || '').toLowerCase();
             return nome.includes(term) || mat.includes(term);
         });
         
         // Identificar nomes únicos dos pedidos encontrados
-        const matriculasUnicas = [...new Set(pedidosCandidatos.map(p => String(p['MATRÍCULA'] || p['MATRICULA'] || '')))];
+        const matriculasUnicas = [...new Set(pedidosCandidatos.map(p => String(p['MATRÍCULA'] || p['MATRICULA'] || '')))].filter(m => m.trim() !== '');
+        const nomesUnicos = [...new Set(pedidosCandidatos.map(p => getServidorName(p).toLowerCase()))].filter(n => n !== '' && n !== '—');
         
-        // Extrair informações de servidores baseado nas matriculas
+        // Extrair informações de servidores baseado nas matriculas ou nomes
         servidoresEncontrados = data.servidores.filter(s => {
             const mat = String(s['MATRÍCULA'] || s['MATRICULA'] || '');
-            return matriculasUnicas.includes(mat);
+            const nome = getServidorName(s).toLowerCase();
+            return (mat && matriculasUnicas.includes(mat)) || (nome && nomesUnicos.includes(nome));
         });
 
-        // Filtrar a tabela para mostrar dados de todas as pessoas dessas matrículas (mesmo se digitar nome errado em alguns pedidos da mesma matrícula)
+        // Fallback: Se não encontrou no cadastro de servidores, gera a partir dos pedidos para que o painel sempre abra
+        if (servidoresEncontrados.length === 0 && pedidosCandidatos.length > 0) {
+            const vistos = new Set();
+            pedidosCandidatos.forEach(p => {
+                const nome = getServidorName(p);
+                if (!vistos.has(nome)) {
+                    vistos.add(nome);
+                    servidoresEncontrados.push({
+                        'SERVIDOR': nome,
+                        'MATRÍCULA': p['MATRÍCULA'] || p['MATRICULA'] || '—',
+                        'CPF': 'Não cadastrado',
+                        'BANCO': '—',
+                        'AgenciaCod': '—',
+                        'ContaNro': '—',
+                        'Obs': '⚠️ Servidor não localizado na aba SERVIDORES.'
+                    });
+                }
+            });
+        }
+
+        // Filtrar a tabela para mostrar dados de todas as pessoas dessas matrículas (se existirem), senão usa nomes
         pedidosFiltrados = matriculasUnicas.length > 0
             ? pedidosFiltrados.filter(p => matriculasUnicas.includes(String(p['MATRÍCULA'] || p['MATRICULA'] || '')))
             : pedidosCandidatos;
@@ -118,7 +140,7 @@ function renderLancamentoPonto(searchTerm = '') {
 
     pedidosFiltrados.forEach(p => {
         const numPedido = p['PEDIDO'] || '—';
-        const servidor = p['SERVIDOR'] || '—';
+        const servidor = getServidorName(p);
         const mat = p['MATRÍCULA'] || p['MATRICULA'] || '';
         const trecho = p['TRECHO'] || '—';
         
@@ -180,39 +202,15 @@ function showServidoresPontoInfo(servidores, panel) {
 
     panel.innerHTML = servidores.map((servidor, index) => {
         const isLast = index === servidores.length - 1;
+        const nomeSrv = getServidorName(servidor);
+        const inicial = nomeSrv !== '—' ? nomeSrv[0].toUpperCase() : 'S';
+
         return `
-            <div class="servidor-card-item" style="${!isLast ? 'margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color);' : ''}">
-                <div class="servidor-header">
-                    <div class="servidor-avatar">${(servidor['SERVIDOR'] || 'S')[0]}</div>
-                    <div class="servidor-details">
-                        <h3 class="servidor-name-clickable" onclick="selectServidorPonto('${servidor['SERVIDOR'] || ''}')" title="Clique para preencher a busca">${servidor['SERVIDOR'] || '—'}</h3>
-                        <span class="servidor-matricula">Matrícula: ${servidor['MATRÍCULA'] || servidor['MATRICULA'] || '—'}</span>
-                    </div>
+            <div class="servidor-card-item" style="padding: 12px 16px; ${!isLast ? 'border-bottom: 1px solid var(--border-color);' : ''} display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s;" onclick="selectServidorPonto('${nomeSrv.replace(/'/g, "\\'")}')" onmouseover="this.style.background='var(--bg-card-hover)'" onmouseout="this.style.background='transparent'">
+                <div class="servidor-avatar" style="width: 32px; height: 32px; font-size: 0.9rem;">${inicial}</div>
+                <div class="servidor-details">
+                    <h3 class="servidor-name-clickable" style="font-size: 0.95rem; margin: 0; color: var(--text-primary); transition: none;" title="Preencher busca">${nomeSrv}</h3>
                 </div>
-                <div class="servidor-data">
-                    <div class="servidor-field">
-                        <span class="field-label">CPF</span>
-                        <span class="field-value">${servidor['CPF'] || '—'}</span>
-                    </div>
-                    <div class="servidor-field">
-                        <span class="field-label">Banco</span>
-                        <span class="field-value">${servidor['BANCO'] || '—'}</span>
-                    </div>
-                    <div class="servidor-field">
-                        <span class="field-label">Agência</span>
-                        <span class="field-value">${servidor['AgenciaCod'] || '—'}</span>
-                    </div>
-                    <div class="servidor-field">
-                        <span class="field-label">Conta</span>
-                        <span class="field-value">${servidor['ContaNro'] || '—'}</span>
-                    </div>
-                </div>
-                ${servidor['Obs'] ? `
-                    <div class="servidor-obs">
-                        <span class="obs-label">📌 Observações</span>
-                        <p>${servidor['Obs']}</p>
-                    </div>
-                ` : ''}
             </div>
         `;
     }).join('');

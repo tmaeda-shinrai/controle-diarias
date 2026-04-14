@@ -169,7 +169,7 @@ function renderExpandedTable(pedidos, status, rawData) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="col-pedido">${pedido['PEDIDO'] || '—'}</td>
-      <td class="col-servidor">${pedido['SERVIDOR'] || '—'}</td>
+      <td class="col-servidor">${getServidorName(pedido)}</td>
       <td class="col-trecho">${pedido['TRECHO'] || '—'}</td>
       <td class="col-inicio">${formatDate(pedido['INÍCIO'] || pedido['INICIO'])}</td>
       <td class="col-final">${formatDate(pedido['FINAL'])}</td>
@@ -199,18 +199,40 @@ function applyFilter(searchTerm) {
   } else {
     // 1ª passagem: encontra todos os pedidos que batem com o texto
     const pedidosCandidatos = data.pedidos.filter(p => {
-      const nome = String(p['SERVIDOR'] || '').toLowerCase();
+      const nome = getServidorName(p).toLowerCase();
       const matricula = String(p['MATRÍCULA'] || p['MATRICULA'] || '').toLowerCase();
       return nome.includes(_currentFilter) || matricula.includes(_currentFilter);
     });
 
-    const matriculasCandidatas = [...new Set(pedidosCandidatos.map(p => String(p['MATRÍCULA'] || p['MATRICULA'] || '')))];
+    const matriculasCandidatas = [...new Set(pedidosCandidatos.map(p => String(p['MATRÍCULA'] || p['MATRICULA'] || '')))].filter(m => m.trim() !== '');
+    const nomesCandidatos = [...new Set(pedidosCandidatos.map(p => getServidorName(p).toLowerCase()))].filter(n => n !== '' && n !== '—');
 
     // Identifica os servidores de todos os pedidos encontrados
     const servidoresEncontrados = data.servidores.filter(s => {
       const mat = String(s['MATRÍCULA'] || s['MATRICULA'] || '');
-      return matriculasCandidatas.includes(mat);
+      const nome = getServidorName(s).toLowerCase();
+      return (mat && matriculasCandidatas.includes(mat)) || (nome && nomesCandidatos.includes(nome));
     });
+
+    // Fallback para exibir o card mesmo se o servidor não existir na aba SERVIDORES
+    if (servidoresEncontrados.length === 0 && pedidosCandidatos.length > 0) {
+      const vistos = new Set();
+      pedidosCandidatos.forEach(p => {
+        const nome = getServidorName(p);
+        if (!vistos.has(nome)) {
+          vistos.add(nome);
+          servidoresEncontrados.push({
+            'SERVIDOR': nome,
+            'MATRÍCULA': p['MATRÍCULA'] || p['MATRICULA'] || '—',
+            'CPF': 'Não cadastrado',
+            'BANCO': '—',
+            'AgenciaCod': '—',
+            'ContaNro': '—',
+            'Obs': '⚠️ Servidor não localizado na aba SERVIDORES.'
+          });
+        }
+      });
+    }
 
     if (servidoresEncontrados.length > 0) {
       _filteredServidor = servidoresEncontrados[0]; // Mantendo para compatibilidade caso seja usado em outro lugar
@@ -260,39 +282,15 @@ function showServidoresInfo(servidores) {
 
   panel.innerHTML = servidores.map((servidor, index) => {
     const isLast = index === servidores.length - 1;
+    const nomeSrv = getServidorName(servidor);
+    const inicial = nomeSrv !== '—' ? nomeSrv[0].toUpperCase() : 'S';
+
     return `
-      <div class="servidor-card-item" style="${!isLast ? 'margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color);' : ''}">
-        <div class="servidor-header">
-          <div class="servidor-avatar">${(servidor['SERVIDOR'] || 'S')[0]}</div>
-          <div class="servidor-details">
-            <h3 class="servidor-name-clickable" onclick="selectServidor('${servidor['SERVIDOR'] || ''}')" title="Clique para preencher a busca">${servidor['SERVIDOR'] || '—'}</h3>
-            <span class="servidor-matricula">Matrícula: ${servidor['MATRÍCULA'] || servidor['MATRICULA'] || '—'}</span>
-          </div>
+      <div class="servidor-card-item" style="padding: 12px 16px; ${!isLast ? 'border-bottom: 1px solid var(--border-color);' : ''} display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s;" onclick="selectServidor('${nomeSrv.replace(/'/g, "\\'")}')" onmouseover="this.style.background='var(--bg-card-hover)'" onmouseout="this.style.background='transparent'">
+        <div class="servidor-avatar" style="width: 32px; height: 32px; font-size: 0.9rem;">${inicial}</div>
+        <div class="servidor-details">
+          <h3 class="servidor-name-clickable" style="font-size: 0.95rem; margin: 0; color: var(--text-primary); transition: none;" title="Preencher busca">${nomeSrv}</h3>
         </div>
-        <div class="servidor-data">
-          <div class="servidor-field">
-            <span class="field-label">CPF</span>
-            <span class="field-value">${servidor['CPF'] || '—'}</span>
-          </div>
-          <div class="servidor-field">
-            <span class="field-label">Banco</span>
-            <span class="field-value">${servidor['BANCO'] || '—'}</span>
-          </div>
-          <div class="servidor-field">
-            <span class="field-label">Agência</span>
-            <span class="field-value">${servidor['AgenciaCod'] || '—'}</span>
-          </div>
-          <div class="servidor-field">
-            <span class="field-label">Conta</span>
-            <span class="field-value">${servidor['ContaNro'] || '—'}</span>
-          </div>
-        </div>
-        ${servidor['Obs'] ? `
-          <div class="servidor-obs">
-            <span class="obs-label">📌 Observações</span>
-            <p>${servidor['Obs']}</p>
-          </div>
-        ` : ''}
       </div>
     `;
   }).join('');
