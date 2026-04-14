@@ -256,6 +256,8 @@ function showServidoresInfo(servidores) {
   const panel = document.getElementById('servidor-info');
   if (!panel) return;
 
+  panel.classList.add('servidor-info-panel'); // Garante a classe base
+
   panel.innerHTML = servidores.map((servidor, index) => {
     const isLast = index === servidores.length - 1;
     return `

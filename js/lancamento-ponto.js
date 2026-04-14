@@ -218,27 +218,6 @@ function showServidoresPontoInfo(servidores, panel) {
     }).join('');
 
     panel.classList.add('visible');
-    // Forçamos que a borda do painel seja igual a do dashboard
-    if (!panel.classList.contains('servidor-info-base-classes')) {
-        panel.classList.add('servidor-info-base-classes');
-        panel.style.background = 'var(--bg-card)';
-        panel.style.border = '1px solid var(--border-color)';
-        panel.style.borderRadius = 'var(--radius-lg)';
-        panel.style.padding = '0';
-        panel.style.marginBottom = '24px';
-        panel.style.maxHeight = '0';
-        panel.style.opacity = '0';
-        panel.style.overflow = 'hidden';
-        panel.style.transition = 'all var(--transition-slow)';
-    }
-
-    // Usando setTimeout diminuto para garantir que o CSS aplique a altura máxima dinamicamente via JS/classe visible
-    setTimeout(() => {
-        panel.style.padding = '20px';
-        panel.style.maxHeight = '2000px';
-        panel.style.opacity = '1';
-        panel.style.overflowY = 'auto';
-    }, 10);
 }
 
 if (document.readyState === 'loading') {

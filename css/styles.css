@@ -657,7 +657,7 @@ body::before {
 }
 
 /* --- Servidor Info Panel --- */
-#servidor-info {
+.servidor-info-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -669,11 +669,13 @@ body::before {
   transition: all var(--transition-slow);
 }
 
-#servidor-info.visible {
+.servidor-info-panel.visible {
   padding: 20px;
   max-height: 2000px;
   opacity: 1;
   overflow-y: auto;
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card);
 }
 
 .servidor-header {
